@@ -18,10 +18,12 @@ import org.robolectric.annotation.Config
 class ExampleRobolectricTest {
 
     @Test
-    fun `read string from context matches SHIVOID`() {
+    fun `read string from context matches SHI V01D and developer`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val appName = context.getString(R.string.app_name)
-        assertEquals("SHIVOID", appName)
+        val developerName = context.getString(R.string.developer_name)
+        assertEquals("SHI.V01D", appName)
+        assertEquals("SHIVANSH THAKUR", developerName)
     }
 
     @Test
@@ -38,13 +40,14 @@ class ExampleRobolectricTest {
     }
 
     @Test
-    fun `device helper produces valid json`() {
+    fun `device helper produces valid json with SHI V01D and SHIVANSH THAKUR`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val helper = ShivoidDeviceHelper(context)
 
         val devJsonStr = helper.getDeviceInfoJson()
         val devJson = JSONObject(devJsonStr)
-        assertEquals("SHIVOID", devJson.optString("appName"))
+        assertEquals("SHI.V01D", devJson.optString("appName"))
+        assertEquals("SHIVANSH THAKUR", devJson.optString("developer"))
         assertNotNull(devJson.optJSONObject("screen"))
 
         val battJsonStr = helper.getBatteryInfoJson()

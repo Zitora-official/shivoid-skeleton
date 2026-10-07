@@ -239,7 +239,10 @@
 
     window.Shivoid = Shivoid;
     window.SHIVOID = Shivoid; // Alias for convenience
-    console.log("[SHIVOID] Native bridge initialized. Access via window.Shivoid or window.ShivoidNative.");
+    window.SHIV01D = Shivoid; // Alias for SHI.V01D branding
+    Shivoid.productName = "SHI.V01D";
+    Shivoid.developer = "SHIVANSH THAKUR";
+    console.log("[SHI.V01D] Native bridge initialized by SHIVANSH THAKUR. Access via window.Shivoid or window.SHIV01D.");
 
     // Trigger ready event
     window.dispatchEvent(new CustomEvent("shivoid:ready", { detail: { version: Shivoid.version } }));

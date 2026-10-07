@@ -80,7 +80,7 @@ class ShivoidPreferences(context: Context) {
 
     private fun getDefaultBookmarks(): List<Bookmark> {
         return listOf(
-            Bookmark("SHIVOID Playground", DEFAULT_HOME_URL),
+            Bookmark("SHI.V01D Playground", DEFAULT_HOME_URL),
             Bookmark("Local Automate Webhook", "http://127.0.0.1:8080/automate/webhook"),
             Bookmark("Local Network Endpoint", "http://192.168.1.1:8080"),
             Bookmark("HttpBin Test API", "https://httpbin.org/get")

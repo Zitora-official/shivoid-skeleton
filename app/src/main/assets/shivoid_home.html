@@ -294,10 +294,10 @@
     <div class="header">
         <div class="badge-status">
             <span class="badge-dot" id="bridgeDot"></span>
-            <span id="bridgeStatusText">CONNECTING TO SHIVOID NATIVE...</span>
+            <span id="bridgeStatusText">CONNECTING TO SHI.V01D NATIVE...</span>
         </div>
-        <h1>SHIVOID</h1>
-        <p class="subtitle">Permanent Native Android Shell & Remote JavaScript Bridge. Control device hardware directly from web HTML/JS.</p>
+        <h1>SHI.V01D</h1>
+        <p class="subtitle">Permanent Native Android Shell & Remote JavaScript Bridge • Created by <strong>SHIVANSH THAKUR</strong></p>
     </div>
 
     <div class="grid">
@@ -335,11 +335,11 @@
         <div class="card">
             <div class="card-header">
                 <span class="card-title">🗣️ Text-To-Speech (TTS)</span>
-                <span class="icon-tag">Audio</span>
+                <span class="icon-tag">Audio Out</span>
             </div>
             <div class="form-row">
                 <label class="form-label">Speech Text</label>
-                <input type="text" id="ttsText" value="SHIVOID native bridge is fully operational. Remote web control enabled.">
+                <input type="text" id="ttsText" value="SHI.V01D native bridge is fully operational. Created by SHIVANSH THAKUR.">
             </div>
             <div class="form-row">
                 <label class="form-label">Pitch: <span id="pitchVal">1.0</span></label>
@@ -357,6 +357,27 @@
                 <button class="primary" onclick="triggerTTS()">Speak Text</button>
                 <button class="danger" onclick="stopTTS()">Stop Speech</button>
             </div>
+        </div>
+
+        <!-- MICROPHONE & VOICE INPUT -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">🎙️ Microphone & Voice Input</span>
+                <span class="icon-tag">Audio In</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 8px;">Supports standard WebRTC audio capture (getUserMedia) & SpeechRecognition in WebView:</p>
+            <div class="btn-group">
+                <button class="primary" onclick="testMicWebRTC()">Test Microphone (WebRTC)</button>
+                <button class="accent" onclick="testSpeechRecognition()">Start Speech Recognition</button>
+                <button class="danger" onclick="stopMicrophone()">Stop Audio</button>
+            </div>
+            <div style="margin-top: 10px; display: none;" id="micMeterContainer">
+                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Live Microphone Level:</div>
+                <div style="width: 100%; height: 8px; background: var(--surface-variant); border-radius: 4px; overflow: hidden; border: 1px solid var(--border);">
+                    <div id="micMeterBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #00d9f5); transition: width 0.05s;"></div>
+                </div>
+            </div>
+            <div class="output-box" id="micStatus">Microphone status... Click "Test Microphone" to verify recording permission.</div>
         </div>
 
         <!-- VIBRATION & HAPTICS -->
@@ -511,7 +532,7 @@ const battery = window.Shivoid.device.getBattery();
             if (hasBridge) {
                 dot.style.backgroundColor = '#10b981';
                 dot.style.boxShadow = '0 0 8px #10b981';
-                txt.innerText = 'SHIVOID NATIVE BRIDGE: ACTIVE';
+                txt.innerText = 'SHI.V01D NATIVE BRIDGE: ACTIVE';
                 txt.parentElement.style.borderColor = 'rgba(16, 185, 129, 0.4)';
                 refreshDeviceTelemetry();
             } else {
@@ -721,6 +742,111 @@ const battery = window.Shivoid.device.getBattery();
             if (window.Shivoid) {
                 window.Shivoid.app.toast(msg);
             }
+        }
+
+        // Microphone & Audio Recording Test
+        let micStream = null;
+        let audioContext = null;
+        let meterInterval = null;
+        let recognitionInstance = null;
+
+        async function testMicWebRTC() {
+            const status = document.getElementById('micStatus');
+            const meterContainer = document.getElementById('micMeterContainer');
+            const meterBar = document.getElementById('micMeterBar');
+            status.innerText = 'Requesting microphone permission from Android system...';
+
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    status.innerText = 'navigator.mediaDevices.getUserMedia is not available in this context.';
+                    return;
+                }
+                micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                status.innerText = 'Microphone permission GRANTED! Live audio stream capturing.';
+                meterContainer.style.display = 'block';
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(micStream);
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                if (meterInterval) clearInterval(meterInterval);
+                meterInterval = setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                    const avg = sum / dataArray.length;
+                    const pct = Math.min(100, Math.round((avg / 128) * 100));
+                    meterBar.style.width = pct + '%';
+                }, 50);
+            } catch (err) {
+                status.innerText = 'Microphone error or permission denied: ' + (err.message || err);
+            }
+        }
+
+        function testSpeechRecognition() {
+            const status = document.getElementById('micStatus');
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) {
+                status.innerText = 'SpeechRecognition API is not bundled directly in this engine; WebRTC audio capture (getUserMedia) is fully operational.';
+                return;
+            }
+
+            try {
+                if (recognitionInstance) recognitionInstance.abort();
+                recognitionInstance = new SpeechRec();
+                recognitionInstance.continuous = false;
+                recognitionInstance.interimResults = true;
+                recognitionInstance.lang = 'en-US';
+
+                status.innerText = 'Listening for speech input... Speak now.';
+
+                recognitionInstance.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    status.innerText = 'Recognized speech: "' + transcript + '"';
+                };
+
+                recognitionInstance.onerror = (event) => {
+                    status.innerText = 'Speech recognition error: ' + event.error;
+                };
+
+                recognitionInstance.onend = () => {
+                    status.innerText += ' (Listening ended)';
+                };
+
+                recognitionInstance.start();
+            } catch (e) {
+                status.innerText = 'Speech recognition failed to start: ' + e.message;
+            }
+        }
+
+        function stopMicrophone() {
+            if (meterInterval) {
+                clearInterval(meterInterval);
+                meterInterval = null;
+            }
+            if (micStream) {
+                micStream.getTracks().forEach(t => t.stop());
+                micStream = null;
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            if (recognitionInstance) {
+                recognitionInstance.abort();
+                recognitionInstance = null;
+            }
+            const bar = document.getElementById('micMeterBar');
+            if (bar) bar.style.width = '0%';
+            const container = document.getElementById('micMeterContainer');
+            if (container) container.style.display = 'none';
+            document.getElementById('micStatus').innerText = 'Microphone stopped.';
         }
     </script>
 </body>

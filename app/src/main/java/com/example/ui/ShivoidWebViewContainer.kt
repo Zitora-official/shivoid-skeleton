@@ -81,6 +81,7 @@ fun ShivoidWebViewContainer(
                         allowContentAccess = true
                         mediaPlaybackRequiresUserGesture = false
                         mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                        javaScriptCanOpenWindowsAutomatically = true
 
                         setSupportZoom(true)
                         builtInZoomControls = true
@@ -91,7 +92,7 @@ fun ShivoidWebViewContainer(
 
                         // Inject custom identifier into user-agent
                         val currentUa = userAgentString
-                        userAgentString = "$currentUa SHIVOID/1.0"
+                        userAgentString = "$currentUa SHI.V01D/1.0 SHIVOID/1.0"
                     }
 
                     // Register Native Bridge Interface
@@ -107,9 +108,9 @@ fun ShivoidWebViewContainer(
                 // Handle desktop mode toggle
                 val defaultUa = WebSettings.getDefaultUserAgent(webView.context)
                 val targetUa = if (state.isDesktopMode) {
-                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SHIVOID/1.0"
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SHI.V01D/1.0 SHIVOID/1.0"
                 } else {
-                    "$defaultUa SHIVOID/1.0"
+                    "$defaultUa SHI.V01D/1.0 SHIVOID/1.0"
                 }
                 if (webView.settings.userAgentString != targetUa) {
                     webView.settings.userAgentString = targetUa

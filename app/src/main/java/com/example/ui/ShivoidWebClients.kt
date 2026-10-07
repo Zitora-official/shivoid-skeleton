@@ -115,7 +115,8 @@ class ShivoidChromeClient(
     private val onShowFileChooserCallback: (
         filePathCallback: ValueCallback<Array<Uri>>?,
         fileChooserParams: WebChromeClient.FileChooserParams?
-    ) -> Boolean
+    ) -> Boolean,
+    private val onPermissionRequestCallback: (PermissionRequest) -> Unit
 ) : WebChromeClient() {
 
     override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -144,7 +145,8 @@ class ShivoidChromeClient(
     }
 
     override fun onPermissionRequest(request: PermissionRequest?) {
-        // Automatically grant camera/mic permissions requested by WebView if app has system permissions
-        request?.grant(request.resources)
+        if (request != null) {
+            onPermissionRequestCallback(request)
+        }
     }
 }

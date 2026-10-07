@@ -256,15 +256,16 @@ fun ShivoidSettingsSheet(
                 .testTag("settings_bottom_sheet")
         ) {
             Text(
-                text = "⚙️ SHIVOID Settings & Bridge",
+                text = "⚙️ SHI.V01D Settings & About",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
             Text(
-                text = "Native bridge configuration and display controls",
+                text = "Created by SHIVANSH THAKUR • Permanent Native Shell",
                 fontSize = 12.sp,
-                color = TextSecondary,
+                color = CyberCyan,
+                fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
@@ -384,13 +385,14 @@ fun ShivoidSettingsSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("Active JavaScript Bridge APIs:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = CyberCyan)
+                    Text("SHI.V01D Capabilities & Bridge:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = CyberCyan)
                     Text(
+                        "• Voice / Microphone: WebRTC audio & SpeechRecognition\n" +
                         "• Text-To-Speech: speak, stop, isSpeaking\n" +
-                        "• Vibration: vibrate, pattern, stop\n" +
-                        "• Notifications: native notification builder\n" +
-                        "• HTTP / Automate: native GET/POST (bypasses CORS)\n" +
-                        "• Telemetry: battery %, charging, OS, network\n" +
+                        "• Vibration: vibrate, waveform pattern, cancel\n" +
+                        "• Notifications: native Android channel dispatcher\n" +
+                        "• HTTP / Automate: native OkHttp GET/POST (bypasses CORS)\n" +
+                        "• Telemetry: battery %, charging, device model, network\n" +
                         "• Camera & Files: photo capture & file picker\n" +
                         "• Clipboard & External App Launches",
                         fontSize = 11.sp,
@@ -398,6 +400,29 @@ fun ShivoidSettingsSheet(
                         modifier = Modifier.padding(top = 4.dp),
                         lineHeight = 16.sp
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Creator Attribution Card
+            Card(
+                colors = CardDefaults.cardColors(containerColor = CyberSurfaceVariant),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("SHI.V01D", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = TextPrimary)
+                        Text("Developer: SHIVANSH THAKUR", fontSize = 11.sp, color = CyberCyan, fontWeight = FontWeight.SemiBold)
+                    }
+                    Text("v1.0", fontSize = 11.sp, color = TextMuted)
                 }
             }
 

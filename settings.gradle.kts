@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "SHIVOID"
+rootProject.name = "SHI.V01D"
 
 include(":app")

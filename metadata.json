@@ -1,6 +1,6 @@
 {
-  "name": "SHIVOID",
-  "description": "Native Android WebView container and JavaScript bridge for TTS, vibration, notifications, HTTP, battery, clipboard, camera, files, and automation.",
+  "name": "SHI.V01D",
+  "description": "Permanent native Android shell and JavaScript bridge for SHI.V01D by SHIVANSH THAKUR.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -59,8 +59,9 @@ class ShivoidDeviceHelper(private val context: Context) {
     fun getDeviceInfoJson(): String {
         val root = JSONObject()
         try {
-            root.put("appName", "SHIVOID")
+            root.put("appName", "SHI.V01D")
             root.put("appVersion", "1.0")
+            root.put("developer", "SHIVANSH THAKUR")
             root.put("deviceModel", Build.MODEL)
             root.put("model", Build.MODEL)
             root.put("manufacturer", Build.MANUFACTURER)

@@ -278,7 +278,7 @@ fun ShivoidTopBar(
                     .padding(vertical = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                QuickChip(title = "🏠 Playground") {
+                QuickChip(title = "🏠 SHI.V01D") {
                     onLoadUrl("file:///android_asset/shivoid_home.html")
                 }
                 QuickChip(title = "⚡ Automate (127.0.0.1)") {

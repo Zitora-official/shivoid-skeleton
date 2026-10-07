@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.provider.OpenableColumns
 import android.util.Base64
 import android.view.WindowManager
+import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -136,6 +137,82 @@ class MainActivity : ComponentActivity(), ShivoidBridgeHost {
         ActivityResultContracts.RequestPermission()
     ) { /* Processed automatically by system */ }
 
+    // Callback for WebRTC / Audio Capture / Video Capture permission requests in WebView
+    private var pendingWebPermissionRequest: PermissionRequest? = null
+
+    private val requestWebMediaPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val request = pendingWebPermissionRequest
+        pendingWebPermissionRequest = null
+        if (request == null) return@registerForActivityResult
+
+        val grantedResources = mutableListOf<String>()
+        for (res in request.resources) {
+            when (res) {
+                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
+                    val hasAudio = permissions[Manifest.permission.RECORD_AUDIO] == true ||
+                            ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                    if (hasAudio) grantedResources.add(res)
+                }
+                PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
+                    val hasVideo = permissions[Manifest.permission.CAMERA] == true ||
+                            ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                    if (hasVideo) grantedResources.add(res)
+                }
+                PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID -> {
+                    grantedResources.add(res)
+                }
+                else -> {
+                    grantedResources.add(res)
+                }
+            }
+        }
+
+        if (grantedResources.isNotEmpty()) {
+            try {
+                request.grant(grantedResources.toTypedArray())
+            } catch (_: Exception) {
+                try { request.deny() } catch (_: Exception) {}
+            }
+        } else {
+            try {
+                request.deny()
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun handleWebPermissionRequest(request: PermissionRequest) {
+        val neededAndroidPermissions = mutableListOf<String>()
+
+        for (res in request.resources) {
+            if (res == PermissionRequest.RESOURCE_AUDIO_CAPTURE) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                    neededAndroidPermissions.add(Manifest.permission.RECORD_AUDIO)
+                }
+            } else if (res == PermissionRequest.RESOURCE_VIDEO_CAPTURE) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    neededAndroidPermissions.add(Manifest.permission.CAMERA)
+                }
+            }
+        }
+
+        if (neededAndroidPermissions.isEmpty()) {
+            // Already granted by user
+            try {
+                request.grant(request.resources)
+            } catch (_: Exception) {
+                try { request.deny() } catch (_: Exception) {}
+            }
+        } else {
+            pendingWebPermissionRequest?.let {
+                try { it.deny() } catch (_: Exception) {}
+            }
+            pendingWebPermissionRequest = request
+            requestWebMediaPermissionsLauncher.launch(neededAndroidPermissions.toTypedArray())
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -243,6 +320,9 @@ class MainActivity : ComponentActivity(), ShivoidBridgeHost {
                         chromeFileChooserCallback = null
                         false
                     }
+                },
+                onPermissionRequestCallback = { request ->
+                    handleWebPermissionRequest(request)
                 }
             )
         }

@@ -5,7 +5,7 @@ import com.example.data.Bookmark
 data class ShivoidUiState(
     val currentUrl: String = "",
     val inputUrl: String = "",
-    val pageTitle: String = "SHIVOID",
+    val pageTitle: String = "SHI.V01D",
     val isLoading: Boolean = false,
     val progress: Float = 0f,
     val canGoBack: Boolean = false,
