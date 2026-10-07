@@ -1,0 +1,6 @@
+{
+  "name": "SHIVOID",
+  "description": "Native Android WebView container and JavaScript bridge for TTS, vibration, notifications, HTTP, battery, clipboard, camera, files, and automation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

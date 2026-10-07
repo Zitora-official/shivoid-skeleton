@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SHIVOID Portal & Bridge Playground</title>
+    <style>
+        :root {
+            --bg: #090c15;
+            --surface: #121727;
+            --surface-variant: #1a2238;
+            --border: #263352;
+            --cyan: #00d9f5;
+            --purple: #9d4edd;
+            --green: #10b981;
+            --red: #ef4444;
+            --text-primary: #f0f4fc;
+            --text-secondary: #94a3b8;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            padding: 16px;
+            padding-bottom: 80px;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 24px 16px 20px;
+            margin-bottom: 20px;
+            background: linear-gradient(180deg, rgba(157, 78, 221, 0.15) 0%, rgba(0, 217, 245, 0.05) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--purple), var(--cyan));
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--green);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #ffffff, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: transform 0.15s, border-color 0.15s;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .icon-tag {
+            background: var(--surface-variant);
+            color: var(--cyan);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        button {
+            background: var(--surface-variant);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        button.primary {
+            background: linear-gradient(135deg, #0284c7, #02b6d6);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 217, 245, 0.25);
+        }
+
+        button.accent {
+            background: linear-gradient(135deg, #7c3aed, #9d4edd);
+            border: none;
+            color: #ffffff;
+        }
+
+        button.danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: var(--surface-variant);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            margin-top: 6px;
+            outline: none;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 2px rgba(0, 217, 245, 0.15);
+        }
+
+        .form-row {
+            margin-bottom: 10px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            margin: 0;
+        }
+
+        .output-box {
+            background: #06080e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 11px;
+            color: #a5f3fc;
+            overflow-x: auto;
+            max-height: 160px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .stat-item {
+            background: var(--surface-variant);
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: var(--radius-sm);
+            margin-top: 10px;
+            display: none;
+            border: 1px solid var(--border);
+        }
+
+        .code-snippet {
+            background: #04060b;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            color: #38bdf8;
+            font-size: 11px;
+            font-family: monospace;
+            margin-top: 8px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="badge-status">
+            <span class="badge-dot" id="bridgeDot"></span>
+            <span id="bridgeStatusText">CONNECTING TO SHIVOID NATIVE...</span>
+        </div>
+        <h1>SHIVOID</h1>
+        <p class="subtitle">Permanent Native Android Shell & Remote JavaScript Bridge. Control device hardware directly from web HTML/JS.</p>
+    </div>
+
+    <div class="grid">
+
+        <!-- DEVICE & BATTERY TELEMETRY -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">🔋 Device & Battery Telemetry</span>
+                <span class="icon-tag">Hardware</span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Battery Level</div>
+                    <div class="stat-value" id="valBattery">--%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Charging State</div>
+                    <div class="stat-value" id="valCharging">--</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Model / OS</div>
+                    <div class="stat-value" id="valDevice">--</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Network / Screen</div>
+                    <div class="stat-value" id="valNetwork">--</div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="primary" onclick="refreshDeviceTelemetry()">Refresh Stats</button>
+            </div>
+        </div>
+
+        <!-- TEXT TO SPEECH (TTS) -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">🗣️ Text-To-Speech (TTS)</span>
+                <span class="icon-tag">Audio</span>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Speech Text</label>
+                <input type="text" id="ttsText" value="SHIVOID native bridge is fully operational. Remote web control enabled.">
+            </div>
+            <div class="form-row">
+                <label class="form-label">Pitch: <span id="pitchVal">1.0</span></label>
+                <div class="slider-row">
+                    <input type="range" id="ttsPitch" min="0.5" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('pitchVal').innerText=this.value">
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Speech Rate: <span id="rateVal">1.0</span></label>
+                <div class="slider-row">
+                    <input type="range" id="ttsRate" min="0.5" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('rateVal').innerText=this.value">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="primary" onclick="triggerTTS()">Speak Text</button>
+                <button class="danger" onclick="stopTTS()">Stop Speech</button>
+            </div>
+        </div>
+
+        <!-- VIBRATION & HAPTICS -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">📳 Haptic & Vibration Bridge</span>
+                <span class="icon-tag">Sensors</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 8px;">Trigger tactile feedback patterns on device motor:</p>
+            <div class="btn-group">
+                <button onclick="vibrateOnce(60)">Short Tick (60ms)</button>
+                <button onclick="vibrateOnce(250)">Medium (250ms)</button>
+                <button onclick="vibratePattern([0, 100, 80, 100, 80, 250])">Pulse Burst</button>
+                <button class="accent" onclick="vibratePattern([0, 150, 100, 150, 100, 150, 250, 400, 100, 400, 100, 400, 250, 150, 100, 150])">SOS Alert</button>
+                <button class="danger" onclick="cancelVibration()">Stop</button>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">🔔 Native Notifications</span>
+                <span class="icon-tag">System</span>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Notification Title</label>
+                <input type="text" id="notifTitle" value="SHIVOID Alert">
+            </div>
+            <div class="form-row">
+                <label class="form-label">Message Content</label>
+                <input type="text" id="notifMsg" value="Remote command executed from web successfully!">
+            </div>
+            <div class="btn-group">
+                <button class="primary" onclick="triggerNotification()">Dispatch Native Notification</button>
+            </div>
+        </div>
+
+        <!-- HTTP GET / POST & AUTOMATE -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">🌐 Native HTTP & Automate Bridge</span>
+                <span class="icon-tag">Networking</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 8px;">Bypasses browser CORS restrictions by executing through Android's native OkHttp engine. Direct integration for Automate / LLAR / Tasker webhooks:</p>
+            <div class="form-row">
+                <label class="form-label">Endpoint URL</label>
+                <input type="text" id="httpUrl" value="https://httpbin.org/get">
+            </div>
+            <div class="form-row">
+                <label class="form-label">Method</label>
+                <select id="httpMethod" onchange="toggleBodyInput()">
+                    <option value="GET">GET Request</option>
+                    <option value="POST">POST Request (JSON)</option>
+                    <option value="AUTOMATE">Automate / Webhook Trigger</option>
+                </select>
+            </div>
+            <div class="form-row" id="bodyRow" style="display: none;">
+                <label class="form-label">Request Body (JSON or Text)</label>
+                <textarea id="httpBody" rows="3">{"source": "SHIVOID_WEB", "action": "trigger", "timestamp": Date.now()}</textarea>
+            </div>
+            <div class="btn-group">
+                <button class="primary" onclick="sendHttpRequest()">Execute Request</button>
+                <button onclick="setHttpPreset('automate')">Automate Preset</button>
+                <button onclick="setHttpPreset('ip')">IP Info Preset</button>
+            </div>
+            <div class="output-box" id="httpResponse">Response will display here...</div>
+        </div>
+
+        <!-- CLIPBOARD -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">📋 System Clipboard</span>
+                <span class="icon-tag">Data</span>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Text to Copy</label>
+                <input type="text" id="clipText" value="SHIVOID token: 49b7-8d2a-f01e">
+            </div>
+            <div class="btn-group">
+                <button class="primary" onclick="copyClip()">Copy to Clipboard</button>
+                <button onclick="readClip()">Read from Clipboard</button>
+            </div>
+            <div class="output-box" id="clipResult">Clipboard status...</div>
+        </div>
+
+        <!-- CAMERA & FILES -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">📷 Camera & File Capture</span>
+                <span class="icon-tag">Media</span>
+            </div>
+            <div class="btn-group">
+                <button class="accent" onclick="takeCameraPhoto()">Capture Camera Photo</button>
+                <button onclick="pickNativeFile()">Pick File via Native</button>
+            </div>
+            <div class="form-row" style="margin-top: 10px;">
+                <label class="form-label">Standard HTML File Input:</label>
+                <input type="file" id="htmlFileInput" onchange="handleHtmlFile(this)">
+            </div>
+            <img id="cameraPreview" class="preview-img" alt="Captured preview">
+            <div class="output-box" id="fileResult">File metadata...</div>
+        </div>
+
+        <!-- APPS & SYSTEM CONTROLS -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">⚡ External Apps & Navigation</span>
+                <span class="icon-tag">System</span>
+            </div>
+            <div class="btn-group">
+                <button onclick="shareTest()">Share Text</button>
+                <button onclick="openExternalUrl('https://google.com')">Open External Browser</button>
+                <button onclick="toggleKeepScreenOn()">Keep Screen On</button>
+                <button onclick="showNativeToast('Hello from SHIVOID!')">Show Android Toast</button>
+            </div>
+        </div>
+
+        <!-- DEVELOPER INTEGRATION GUIDE -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">💻 Remote Integration Guide</span>
+                <span class="icon-tag">Docs</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 12px;">Host your HTML/JS anywhere. Inside your web code, invoke:</p>
+            <div class="code-snippet">
+// 1. Speak Text
+window.Shivoid.tts.speak("Hello Master", { pitch: 1.0, rate: 1.0 });
+
+// 2. Trigger Haptic Motor
+window.Shivoid.vibrate([0, 100, 50, 100]);
+
+// 3. Native HTTP Request (Bypasses CORS)
+const res = await window.Shivoid.http.post("https://api.my-site.com/sync", { ok: true });
+
+// 4. Trigger Automate HTTP Webhook
+await window.Shivoid.http.automate("http://127.0.0.1:8080/task", { cmd: "lamp_on" });
+
+// 5. Read Device Telemetry
+const battery = window.Shivoid.device.getBattery();
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let screenOn = false;
+
+        function checkBridge() {
+            const hasBridge = typeof window.Shivoid !== 'undefined' || typeof window.ShivoidNative !== 'undefined';
+            const dot = document.getElementById('bridgeDot');
+            const txt = document.getElementById('bridgeStatusText');
+            if (hasBridge) {
+                dot.style.backgroundColor = '#10b981';
+                dot.style.boxShadow = '0 0 8px #10b981';
+                txt.innerText = 'SHIVOID NATIVE BRIDGE: ACTIVE';
+                txt.parentElement.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                refreshDeviceTelemetry();
+            } else {
+                dot.style.backgroundColor = '#f59e0b';
+                dot.style.boxShadow = '0 0 8px #f59e0b';
+                txt.innerText = 'WAITING FOR NATIVE INJECTION...';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkBridge();
+            setTimeout(checkBridge, 500);
+            setTimeout(checkBridge, 1500);
+        });
+
+        window.addEventListener('shivoid:ready', () => {
+            checkBridge();
+        });
+
+        function refreshDeviceTelemetry() {
+            if (window.Shivoid && window.Shivoid.device) {
+                const batt = window.Shivoid.device.getBattery();
+                const dev = window.Shivoid.device.getInfo();
+
+                document.getElementById('valBattery').innerText = (batt.level !== undefined ? batt.level : '--') + '%';
+                document.getElementById('valCharging').innerText = batt.isCharging ? 'Charging (' + (batt.chargingType || 'Plug') + ')' : 'Discharging';
+                document.getElementById('valDevice').innerText = (dev.manufacturer || '') + ' ' + (dev.model || 'Android') + ' (v' + (dev.androidVersion || dev.apiLevel) + ')';
+                document.getElementById('valNetwork').innerText = (dev.networkType || 'ONLINE') + ' • ' + (dev.screen ? dev.screen.width + 'x' + dev.screen.height : 'Active');
+            }
+        }
+
+        function triggerTTS() {
+            const text = document.getElementById('ttsText').value;
+            const pitch = parseFloat(document.getElementById('ttsPitch').value);
+            const rate = parseFloat(document.getElementById('ttsRate').value);
+            if (window.Shivoid) {
+                window.Shivoid.tts.speak(text, { pitch, rate }).catch(e => console.warn(e));
+            } else if (window.ShivoidNative) {
+                window.ShivoidNative.speak(text, "en", pitch, rate, null);
+            }
+        }
+
+        function stopTTS() {
+            if (window.Shivoid) window.Shivoid.tts.stop();
+            else if (window.ShivoidNative) window.ShivoidNative.stopTTS();
+        }
+
+        function vibrateOnce(ms) {
+            if (window.Shivoid) window.Shivoid.vibrate(ms);
+            else if (window.ShivoidNative) window.ShivoidNative.vibrate(ms);
+        }
+
+        function vibratePattern(pat) {
+            if (window.Shivoid) window.Shivoid.vibrate(pat);
+            else if (window.ShivoidNative) window.ShivoidNative.vibratePattern(JSON.stringify(pat), -1);
+        }
+
+        function cancelVibration() {
+            if (window.Shivoid) window.Shivoid.cancelVibration();
+            else if (window.ShivoidNative) window.ShivoidNative.cancelVibration();
+        }
+
+        function triggerNotification() {
+            const title = document.getElementById('notifTitle').value;
+            const msg = document.getElementById('notifMsg').value;
+            if (window.Shivoid) {
+                window.Shivoid.notification.show(title, msg, Date.now() % 10000);
+            } else if (window.ShivoidNative) {
+                window.ShivoidNative.showNotification(title, msg, Date.now() % 10000, "default");
+            }
+        }
+
+        function toggleBodyInput() {
+            const method = document.getElementById('httpMethod').value;
+            const row = document.getElementById('bodyRow');
+            row.style.display = (method === 'GET') ? 'none' : 'block';
+        }
+
+        function setHttpPreset(type) {
+            const urlInput = document.getElementById('httpUrl');
+            const methodInput = document.getElementById('httpMethod');
+            if (type === 'automate') {
+                urlInput.value = 'http://127.0.0.1:8080/automate/webhook';
+                methodInput.value = 'AUTOMATE';
+            } else {
+                urlInput.value = 'https://httpbin.org/get';
+                methodInput.value = 'GET';
+            }
+            toggleBodyInput();
+        }
+
+        async function sendHttpRequest() {
+            const url = document.getElementById('httpUrl').value;
+            const method = document.getElementById('httpMethod').value;
+            const body = document.getElementById('httpBody').value;
+            const output = document.getElementById('httpResponse');
+            output.innerText = 'Sending native request via OkHttp...';
+
+            try {
+                if (!window.Shivoid) {
+                    output.innerText = 'Error: Shivoid bridge not initialized.';
+                    return;
+                }
+                let res;
+                const startTime = Date.now();
+                if (method === 'GET') {
+                    res = await window.Shivoid.http.get(url);
+                } else if (method === 'AUTOMATE') {
+                    res = await window.Shivoid.http.automate(url, body);
+                } else {
+                    res = await window.Shivoid.http.post(url, body, 'application/json');
+                }
+                const elapsed = Date.now() - startTime;
+                output.innerText = `Status: ${res.statusCode || 200} (${elapsed}ms)\n\nResponse:\n${res.body || JSON.stringify(res, null, 2)}`;
+            } catch (err) {
+                output.innerText = `Request Failed:\n${err.message || err}`;
+            }
+        }
+
+        function copyClip() {
+            const text = document.getElementById('clipText').value;
+            if (window.Shivoid) {
+                window.Shivoid.clipboard.copy(text);
+                document.getElementById('clipResult').innerText = `Copied to clipboard: "${text}"`;
+            }
+        }
+
+        function readClip() {
+            if (window.Shivoid) {
+                const text = window.Shivoid.clipboard.read();
+                document.getElementById('clipResult').innerText = `Current clipboard: "${text}"`;
+            }
+        }
+
+        async function takeCameraPhoto() {
+            const output = document.getElementById('fileResult');
+            const preview = document.getElementById('cameraPreview');
+            output.innerText = 'Launching native camera...';
+            try {
+                if (!window.Shivoid) return;
+                const res = await window.Shivoid.camera.takePhoto();
+                if (res && res.dataUri) {
+                    preview.src = res.dataUri;
+                    preview.style.display = 'block';
+                    output.innerText = `Photo captured! Size: ${Math.round(res.dataUri.length * 0.75 / 1024)} KB`;
+                }
+            } catch (e) {
+                output.innerText = 'Camera canceled or failed: ' + e.message;
+            }
+        }
+
+        async function pickNativeFile() {
+            const output = document.getElementById('fileResult');
+            output.innerText = 'Opening file picker...';
+            try {
+                if (!window.Shivoid) return;
+                const res = await window.Shivoid.files.pick('*/*');
+                output.innerText = `File Selected:\nName: ${res.name || 'Unknown'}\nMime: ${res.mime || 'application/octet-stream'}\nSize: ${res.size ? res.size + ' bytes' : 'N/A'}`;
+                if (res.dataUri && res.mime && res.mime.startsWith('image/')) {
+                    const preview = document.getElementById('cameraPreview');
+                    preview.src = res.dataUri;
+                    preview.style.display = 'block';
+                }
+            } catch (e) {
+                output.innerText = 'File pick canceled: ' + e.message;
+            }
+        }
+
+        function handleHtmlFile(input) {
+            const output = document.getElementById('fileResult');
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                output.innerText = `HTML <input> selected:\n${file.name} (${Math.round(file.size / 1024)} KB, ${file.type})`;
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        const preview = document.getElementById('cameraPreview');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function shareTest() {
+            if (window.Shivoid) {
+                window.Shivoid.app.share('Check out the SHIVOID native app platform!', 'SHIVOID Share');
+            }
+        }
+
+        function openExternalUrl(url) {
+            if (window.Shivoid) {
+                window.Shivoid.app.openExternal(url);
+            }
+        }
+
+        function toggleKeepScreenOn() {
+            screenOn = !screenOn;
+            if (window.Shivoid) {
+                window.Shivoid.app.keepScreenOn(screenOn);
+                window.Shivoid.app.toast(screenOn ? 'Screen lock disabled (Always On)' : 'Screen lock normal');
+            }
+        }
+
+        function showNativeToast(msg) {
+            if (window.Shivoid) {
+                window.Shivoid.app.toast(msg);
+            }
+        }
+    </script>
+</body>
+</html>
