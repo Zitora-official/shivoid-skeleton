@@ -238,8 +238,10 @@ fun ShivoidBookmarksSheet(
 fun ShivoidSettingsSheet(
     isDesktopMode: Boolean,
     isKeepScreenOn: Boolean,
+    currentAutomateEndpoint: String,
     onToggleDesktopMode: (Boolean) -> Unit,
     onToggleKeepScreenOn: (Boolean) -> Unit,
+    onUpdateAutomateEndpoint: (String) -> Unit,
     onClearCache: () -> Unit,
     onLoadPlayground: () -> Unit,
     onDismiss: () -> Unit
@@ -340,6 +342,57 @@ fun ShivoidSettingsSheet(
                         onCheckedChange = onToggleKeepScreenOn,
                         colors = SwitchDefaults.colors(checkedThumbColor = CyberCyan)
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Automate Webhook Endpoint Card
+            Card(
+                colors = CardDefaults.cardColors(containerColor = CyberSurfaceVariant),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                var endpointText by remember(currentAutomateEndpoint) { mutableStateOf(currentAutomateEndpoint) }
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text(
+                        "⚡ Automate HTTP Endpoint",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp,
+                        color = CyberCyan
+                    )
+                    Text(
+                        "Must match the Listen Port and Request URL in Automate's 'HTTP request receive' block:",
+                        fontSize = 11.sp,
+                        color = TextSecondary,
+                        modifier = Modifier.padding(top = 2.dp, bottom = 6.dp)
+                    )
+                    OutlinedTextField(
+                        value = endpointText,
+                        onValueChange = { endpointText = it },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary,
+                            focusedBorderColor = CyberCyan,
+                            unfocusedBorderColor = CyberBorder
+                        )
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(
+                            onClick = { onUpdateAutomateEndpoint(endpointText) },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = CyberCyan, contentColor = Color(0xFF00363F))
+                        ) {
+                            Text("Save Endpoint", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
 

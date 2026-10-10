@@ -54,4 +54,27 @@ class ExampleRobolectricTest {
         val battJson = JSONObject(battJsonStr)
         assertTrue(battJson.has("level") || battJson.has("error"))
     }
+
+    @Test
+    fun `preferences stores and updates automate endpoint correctly`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val prefs = ShivoidPreferences(context)
+
+        // Default endpoint should be standard http://127.0.0.1:8080/
+        assertEquals("http://127.0.0.1:8080/", prefs.automateEndpoint)
+
+        prefs.automateEndpoint = "http://127.0.0.1:8080/task"
+        assertEquals("http://127.0.0.1:8080/task", prefs.automateEndpoint)
+    }
+
+    @Test
+    fun `http helper sanitizes URLs and resolves relative Automate paths`() {
+        val helper = com.example.bridge.ShivoidHttpHelper()
+
+        assertEquals("http://127.0.0.1:8080/", helper.sanitizeUrl(""))
+        assertEquals("http://127.0.0.1:8080/task", helper.sanitizeUrl("/task", "http://127.0.0.1:8080/"))
+        assertEquals("http://localhost:8080/", helper.sanitizeUrl("localhost:8080/"))
+        assertEquals("http://127.0.0.1:8080/", helper.sanitizeUrl("127.0.0.1:8080/"))
+        assertEquals("https://api.my-brain.com/sync", helper.sanitizeUrl("https://api.my-brain.com/sync"))
+    }
 }

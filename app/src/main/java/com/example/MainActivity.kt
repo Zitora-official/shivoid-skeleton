@@ -414,6 +414,7 @@ class MainActivity : ComponentActivity(), ShivoidBridgeHost {
             ShivoidSettingsSheet(
                 isDesktopMode = uiState.isDesktopMode,
                 isKeepScreenOn = uiState.isKeepScreenOn,
+                currentAutomateEndpoint = preferences.automateEndpoint,
                 onToggleDesktopMode = { desktop ->
                     preferences.isDesktopMode = desktop
                     uiState = uiState.copy(isDesktopMode = desktop)
@@ -423,6 +424,10 @@ class MainActivity : ComponentActivity(), ShivoidBridgeHost {
                     preferences.isKeepScreenOn = screenOn
                     uiState = uiState.copy(isKeepScreenOn = screenOn)
                     setKeepScreenOn(screenOn)
+                },
+                onUpdateAutomateEndpoint = { newEndpoint ->
+                    preferences.automateEndpoint = newEndpoint
+                    Toast.makeText(this@MainActivity, "Automate endpoint updated: $newEndpoint", Toast.LENGTH_SHORT).show()
                 },
                 onClearCache = {
                     activeWebView?.clearCache(true)

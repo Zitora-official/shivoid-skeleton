@@ -427,16 +427,23 @@
                 <input type="text" id="httpUrl" value="https://httpbin.org/get">
             </div>
             <div class="form-row">
+                <label class="form-label">Active Automate Endpoint (Saved in Native Settings):</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="activeAutomateEndpoint" style="flex: 1;" value="http://127.0.0.1:8080/">
+                    <button style="margin-top: 6px; white-space: nowrap;" onclick="saveAutomateEndpoint()">Save to App</button>
+                </div>
+            </div>
+            <div class="form-row">
                 <label class="form-label">Method</label>
                 <select id="httpMethod" onchange="toggleBodyInput()">
                     <option value="GET">GET Request</option>
                     <option value="POST">POST Request (JSON)</option>
-                    <option value="AUTOMATE">Automate / Webhook Trigger</option>
+                    <option value="AUTOMATE">Automate / Webhook Trigger (POST JSON)</option>
                 </select>
             </div>
             <div class="form-row" id="bodyRow" style="display: none;">
-                <label class="form-label">Request Body (JSON or Text)</label>
-                <textarea id="httpBody" rows="3">{"source": "SHIVOID_WEB", "action": "trigger", "timestamp": Date.now()}</textarea>
+                <label class="form-label">Request Body (Valid JSON or Text)</label>
+                <textarea id="httpBody" rows="3">{"source": "SHI.VOID_WEB", "action": "trigger", "status": "active"}</textarea>
             </div>
             <div class="btn-group">
                 <button class="primary" onclick="sendHttpRequest()">Execute Request</button>
@@ -512,8 +519,10 @@ window.Shivoid.vibrate([0, 100, 50, 100]);
 // 3. Native HTTP Request (Bypasses CORS)
 const res = await window.Shivoid.http.post("https://api.my-site.com/sync", { ok: true });
 
-// 4. Trigger Automate HTTP Webhook
-await window.Shivoid.http.automate("http://127.0.0.1:8080/task", { cmd: "lamp_on" });
+// 4. Trigger Automate HTTP Webhook (uses configured Automate endpoint)
+await window.Shivoid.automate.send({ action: "lamp_on" });
+// Or provide custom endpoint path/URL:
+await window.Shivoid.http.automate(window.Shivoid.automate.getEndpoint(), { action: "lamp_on" });
 
 // 5. Read Device Telemetry
 const battery = window.Shivoid.device.getBattery();
@@ -535,6 +544,11 @@ const battery = window.Shivoid.device.getBattery();
                 txt.innerText = 'SHI.V01D NATIVE BRIDGE: ACTIVE';
                 txt.parentElement.style.borderColor = 'rgba(16, 185, 129, 0.4)';
                 refreshDeviceTelemetry();
+                if (window.Shivoid && window.Shivoid.automate) {
+                    const ep = window.Shivoid.automate.getEndpoint();
+                    const epInput = document.getElementById('activeAutomateEndpoint');
+                    if (epInput && ep) epInput.value = ep;
+                }
             } else {
                 dot.style.backgroundColor = '#f59e0b';
                 dot.style.boxShadow = '0 0 8px #f59e0b';
@@ -611,12 +625,35 @@ const battery = window.Shivoid.device.getBattery();
             row.style.display = (method === 'GET') ? 'none' : 'block';
         }
 
+        function saveAutomateEndpoint() {
+            const epInput = document.getElementById('activeAutomateEndpoint');
+            if (!epInput) return;
+            const newEp = epInput.value.trim();
+            if (window.Shivoid && window.Shivoid.automate) {
+                window.Shivoid.automate.setEndpoint(newEp);
+                const urlInput = document.getElementById('httpUrl');
+                if (urlInput && document.getElementById('httpMethod').value === 'AUTOMATE') {
+                    urlInput.value = newEp;
+                }
+                if (window.Shivoid.app && window.Shivoid.app.toast) {
+                    window.Shivoid.app.toast("Automate endpoint saved: " + newEp);
+                }
+            }
+        }
+
         function setHttpPreset(type) {
             const urlInput = document.getElementById('httpUrl');
             const methodInput = document.getElementById('httpMethod');
+            const bodyInput = document.getElementById('httpBody');
             if (type === 'automate') {
-                urlInput.value = 'http://127.0.0.1:8080/automate/webhook';
+                const ep = (window.Shivoid && window.Shivoid.automate) ? window.Shivoid.automate.getEndpoint() : 'http://127.0.0.1:8080/';
+                urlInput.value = ep;
                 methodInput.value = 'AUTOMATE';
+                bodyInput.value = JSON.stringify({
+                    source: "SHI.VOID_APP",
+                    action: "trigger",
+                    timestamp: Date.now()
+                }, null, 2);
             } else {
                 urlInput.value = 'https://httpbin.org/get';
                 methodInput.value = 'GET';
@@ -627,7 +664,7 @@ const battery = window.Shivoid.device.getBattery();
         async function sendHttpRequest() {
             const url = document.getElementById('httpUrl').value;
             const method = document.getElementById('httpMethod').value;
-            const body = document.getElementById('httpBody').value;
+            let body = document.getElementById('httpBody').value;
             const output = document.getElementById('httpResponse');
             output.innerText = 'Sending native request via OkHttp...';
 
@@ -636,6 +673,10 @@ const battery = window.Shivoid.device.getBattery();
                     output.innerText = 'Error: Shivoid bridge not initialized.';
                     return;
                 }
+                if (body && body.includes('Date.now()')) {
+                    body = body.replace(/Date\.now\(\)/g, String(Date.now()));
+                }
+
                 let res;
                 const startTime = Date.now();
                 if (method === 'GET') {
@@ -646,9 +687,19 @@ const battery = window.Shivoid.device.getBattery();
                     res = await window.Shivoid.http.post(url, body, 'application/json');
                 }
                 const elapsed = Date.now() - startTime;
-                output.innerText = `Status: ${res.statusCode || 200} (${elapsed}ms)\n\nResponse:\n${res.body || JSON.stringify(res, null, 2)}`;
+                const code = (res.statusCode !== undefined) ? res.statusCode : (res.status || 200);
+                const successIndicator = res.success ? 'SUCCESS' : 'HTTP RESPONSE (Non-2xx)';
+                let displayMsg = `[${successIndicator}] HTTP Status: ${code} (${elapsed}ms)\nEndpoint: ${res.endpoint || url}\n`;
+                if (res.error) {
+                    displayMsg += `\nStatus Details:\n${res.error}\n`;
+                }
+                displayMsg += `\nResponse Body:\n${res.body || '(empty response body)'}`;
+                output.innerText = displayMsg;
             } catch (err) {
-                output.innerText = `Request Failed:\n${err.message || err}`;
+                let errDisplay = `Request Failed (Network / Bridge Error):\n${err.message || err}`;
+                if (err.endpoint) errDisplay += `\nEndpoint: ${err.endpoint}`;
+                if (err.body) errDisplay += `\nResponse: ${err.body}`;
+                output.innerText = errDisplay;
             }
         }
 

@@ -55,14 +55,26 @@ class ShivoidNativeBridge(
     private val clipboard: ClipboardManager? =
         context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
 
-    private fun dispatchResult(callbackId: String, success: Boolean, data: JSONObject? = null, error: String? = null) {
+    /**
+     * Dispatch result safely to WebView JavaScript runtime.
+     * Uses JSONObject.quote to guarantee that JSON content with quotes, newlines,
+     * or special characters never causes JavaScript syntax errors during evaluation.
+     */
+    private fun dispatchResult(
+        callbackId: String,
+        success: Boolean,
+        data: JSONObject? = null,
+        error: String? = null
+    ) {
         val root = JSONObject()
         root.put("callbackId", callbackId)
         root.put("success", success)
+        root.put("status", if (success) "success" else "error")
         if (data != null) root.put("data", data)
         if (error != null) root.put("error", error)
 
-        val jsCall = "window.__shivoid_dispatch && window.__shivoid_dispatch(${root});"
+        val jsonLiteral = JSONObject.quote(root.toString())
+        val jsCall = "window.__shivoid_dispatch && window.__shivoid_dispatch($jsonLiteral);"
         host.runOnMain {
             host.evaluateJavascript(jsCall)
         }
@@ -148,7 +160,7 @@ class ShivoidNativeBridge(
 
     @JavascriptInterface
     fun showNotification(title: String?, message: String?, id: Int, channelId: String?): Boolean {
-        val safeTitle = title ?: "SHIVOID"
+        val safeTitle = title ?: "SHI.V01D"
         val safeMessage = message ?: ""
         return notificationHelper.showNotification(safeTitle, safeMessage, id, channelId)
     }
@@ -165,40 +177,98 @@ class ShivoidNativeBridge(
     @JavascriptInterface
     fun httpGet(url: String?, headersJson: String?, callbackId: String) {
         if (url.isNullOrBlank()) {
-            dispatchResult(callbackId, false, error = "URL is required")
+            val errData = JSONObject().apply {
+                put("success", false)
+                put("status", "error")
+                put("statusCode", 0)
+                put("errorType", "INVALID_REQUEST")
+                put("error", "URL is required")
+                put("operation", "get")
+            }
+            dispatchResult(callbackId, false, errData, "URL is required")
             return
         }
         scope.launch {
             val response = httpHelper.executeGet(url, headersJson)
-            val success = response.optBoolean("success", false)
-            dispatchResult(callbackId, success, response, if (!success) response.optString("error") else null)
+            val statusCode = response.optInt("statusCode", 0)
+            if (statusCode > 0) {
+                // Request roundtrip reached server, preserve exact response data
+                dispatchResult(callbackId, success = true, data = response, error = null)
+            } else {
+                val errorMsg = response.optString("error", "HTTP GET failed: network error")
+                dispatchResult(callbackId, success = false, data = response, error = errorMsg)
+            }
         }
     }
 
     @JavascriptInterface
     fun httpPost(url: String?, body: String?, contentType: String?, headersJson: String?, callbackId: String) {
         if (url.isNullOrBlank()) {
-            dispatchResult(callbackId, false, error = "URL is required")
+            val errData = JSONObject().apply {
+                put("success", false)
+                put("status", "error")
+                put("statusCode", 0)
+                put("errorType", "INVALID_REQUEST")
+                put("error", "URL is required")
+                put("operation", "post")
+            }
+            dispatchResult(callbackId, false, errData, "URL is required")
             return
         }
         scope.launch {
             val response = httpHelper.executePost(url, body, contentType, headersJson)
-            val success = response.optBoolean("success", false)
-            dispatchResult(callbackId, success, response, if (!success) response.optString("error") else null)
+            val statusCode = response.optInt("statusCode", 0)
+            if (statusCode > 0) {
+                // Request roundtrip reached server, preserve exact response data
+                dispatchResult(callbackId, success = true, data = response, error = null)
+            } else {
+                val errorMsg = response.optString("error", "HTTP POST failed: network error")
+                dispatchResult(callbackId, success = false, data = response, error = errorMsg)
+            }
         }
     }
 
     @JavascriptInterface
     fun callAutomate(endpointUrl: String?, payloadJson: String?, callbackId: String) {
-        if (endpointUrl.isNullOrBlank()) {
-            dispatchResult(callbackId, false, error = "Automate endpoint URL is required")
-            return
+        val targetUrl = when {
+            endpointUrl.isNullOrBlank() -> preferences.automateEndpoint
+            endpointUrl.startsWith("/") -> {
+                val base = preferences.automateEndpoint.trimEnd('/')
+                "$base$endpointUrl"
+            }
+            else -> endpointUrl
         }
         scope.launch {
-            val response = httpHelper.callAutomate(endpointUrl, payloadJson)
-            val success = response.optBoolean("success", false)
-            dispatchResult(callbackId, success, response, if (!success) response.optString("error") else null)
+            val response = httpHelper.callAutomate(targetUrl, payloadJson)
+            val statusCode = response.optInt("statusCode", 0)
+            if (statusCode > 0) {
+                // Automate receiver handled the request and responded
+                dispatchResult(callbackId, success = true, data = response, error = null)
+            } else {
+                // Connection or network level failure
+                val errorMsg = response.optString("error", "Automate request failed: network error")
+                dispatchResult(callbackId, success = false, data = response, error = errorMsg)
+            }
         }
+    }
+
+    @JavascriptInterface
+    fun sendAutomate(payloadJson: String?, callbackId: String) {
+        callAutomate(preferences.automateEndpoint, payloadJson, callbackId)
+    }
+
+    @JavascriptInterface
+    fun getAutomateEndpoint(): String {
+        return preferences.automateEndpoint
+    }
+
+    @JavascriptInterface
+    fun setAutomateEndpoint(url: String?): Boolean {
+        if (!url.isNullOrBlank()) {
+            preferences.automateEndpoint = url.trim()
+            return true
+        }
+        return false
     }
 
     // ==========================================
@@ -223,7 +293,7 @@ class ShivoidNativeBridge(
     fun copyToClipboard(text: String?): Boolean {
         val safeText = text ?: ""
         return try {
-            val clip = ClipData.newPlainText("SHIVOID", safeText)
+            val clip = ClipData.newPlainText("SHI.V01D", safeText)
             clipboard?.setPrimaryClip(clip)
             true
         } catch (_: Exception) {
@@ -254,7 +324,8 @@ class ShivoidNativeBridge(
         host.requestTakePhoto { success, dataUri, error ->
             val obj = JSONObject()
             if (dataUri != null) obj.put("dataUri", dataUri)
-            dispatchResult(callbackId, success, obj, error)
+            val errorMsg = error ?: if (!success) "Camera capture failed" else null
+            dispatchResult(callbackId, success, obj, errorMsg)
         }
     }
 
@@ -267,7 +338,8 @@ class ShivoidNativeBridge(
             if (mime != null) obj.put("mime", mime)
             obj.put("size", size)
             if (dataUri != null) obj.put("dataUri", dataUri)
-            dispatchResult(callbackId, success, obj, error)
+            val errorMsg = error ?: if (!success) "File selection failed" else null
+            dispatchResult(callbackId, success, obj, errorMsg)
         }
     }
 
@@ -317,7 +389,7 @@ class ShivoidNativeBridge(
                 putExtra(Intent.EXTRA_TEXT, text)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            val chooser = Intent.createChooser(shareIntent, title ?: "Share via SHIVOID").apply {
+            val chooser = Intent.createChooser(shareIntent, title ?: "Share via SHI.V01D").apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(chooser)

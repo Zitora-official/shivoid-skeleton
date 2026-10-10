@@ -19,13 +19,14 @@ class ShivoidPreferences(context: Context) {
         private const val KEY_BOOKMARKS = "key_bookmarks"
         private const val KEY_KEEP_SCREEN_ON = "key_keep_screen_on"
         private const val KEY_DESKTOP_MODE = "key_desktop_mode"
+        private const val KEY_AUTOMATE_ENDPOINT = "key_automate_endpoint"
         const val DEFAULT_HOME_URL = "file:///android_asset/shivoid_home.html"
+        const val DEFAULT_AUTOMATE_ENDPOINT = "http://127.0.0.1:8080/"
     }
 
     var lastUrl: String
         get() = prefs.getString(KEY_LAST_URL, DEFAULT_HOME_URL) ?: DEFAULT_HOME_URL
         set(value) {
-            // Don't save empty strings
             if (value.isNotBlank()) {
                 prefs.edit().putString(KEY_LAST_URL, value).apply()
             }
@@ -38,6 +39,15 @@ class ShivoidPreferences(context: Context) {
     var isDesktopMode: Boolean
         get() = prefs.getBoolean(KEY_DESKTOP_MODE, false)
         set(value) = prefs.edit().putBoolean(KEY_DESKTOP_MODE, value).apply()
+
+    var automateEndpoint: String
+        get() = prefs.getString(KEY_AUTOMATE_ENDPOINT, DEFAULT_AUTOMATE_ENDPOINT) ?: DEFAULT_AUTOMATE_ENDPOINT
+        set(value) {
+            val trimmed = value.trim()
+            if (trimmed.isNotBlank()) {
+                prefs.edit().putString(KEY_AUTOMATE_ENDPOINT, trimmed).apply()
+            }
+        }
 
     fun getBookmarks(): List<Bookmark> {
         val jsonStr = prefs.getString(KEY_BOOKMARKS, null) ?: return getDefaultBookmarks()
@@ -81,7 +91,7 @@ class ShivoidPreferences(context: Context) {
     private fun getDefaultBookmarks(): List<Bookmark> {
         return listOf(
             Bookmark("SHI.V01D Playground", DEFAULT_HOME_URL),
-            Bookmark("Local Automate Webhook", "http://127.0.0.1:8080/automate/webhook"),
+            Bookmark("Local Automate Listener", DEFAULT_AUTOMATE_ENDPOINT),
             Bookmark("Local Network Endpoint", "http://192.168.1.1:8080"),
             Bookmark("HttpBin Test API", "https://httpbin.org/get")
         )
